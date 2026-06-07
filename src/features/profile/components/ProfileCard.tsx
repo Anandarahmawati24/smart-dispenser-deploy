@@ -19,7 +19,7 @@ export default function ProfileCard({ profile, onRefresh }: Props) {
   const [modalPassword, setModalPassword] = useState(false);
   const [loadingFoto, setLoadingFoto] = useState(false);
   const [imgError, setImgError] = useState(false);
- // const [cacheBuster, setCacheBuster] = useState(Date.now());
+  const [cacheBuster, setCacheBuster] = useState(Date.now());
   const [foto, setFoto] = useState(profile.photoURL || "");
   const [imageLoading, setImageLoading] = useState(!!profile.photoURL);
 
@@ -32,7 +32,7 @@ export default function ProfileCard({ profile, onRefresh }: Props) {
     setFoto(newFoto);
     setImgError(false);
     setImageLoading(!!newFoto);
-    //setCacheBuster(Date.now());
+    setCacheBuster(Date.now());
   }, [profile.photoURL]);
 
   useEffect(() => {
@@ -67,9 +67,9 @@ export default function ProfileCard({ profile, onRefresh }: Props) {
       setFoto(photoURL);
       setImgError(false);
       setImageLoading(true);
-     // setCacheBuster(Date.now());
+      setCacheBuster(Date.now());
 
-    //  onRefresh();
+    onRefresh();
 
       toast.success("Foto profil berhasil diperbarui", { id: toastId });
     } catch {
@@ -122,8 +122,7 @@ export default function ProfileCard({ profile, onRefresh }: Props) {
                 )}
 
                 <Image
-                 // src={`${foto}?t=${cacheBuster}`}
-                  src={foto}
+                  src={`${foto}?t=${cacheBuster}`}
                   alt="Foto profil"
                   width={80}
                   height={80}
