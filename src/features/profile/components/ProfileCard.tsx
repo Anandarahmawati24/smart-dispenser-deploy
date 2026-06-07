@@ -21,22 +21,30 @@ export default function ProfileCard({ profile, onRefresh }: Props) {
   const [imgError, setImgError] = useState(false);
   const [cacheBuster, setCacheBuster] = useState(Date.now());
   const [foto, setFoto] = useState(profile.photoURL || "");
+  const [imageLoading, setImageLoading] = useState(!!profile.photoURL);
 
   const inputFotoRef = useRef<HTMLInputElement>(null);
   const { editFoto } = useEditFoto();
 
-  const isFirstLoad = useRef(true);
-
   useEffect(() => {
-    if (isFirstLoad.current) {
-      setFoto(profile.photoURL || "");
-      isFirstLoad.current = false;
-    }
+    const newFoto = profile.photoURL || "";
+
+    setFoto(newFoto);
+    setImgError(false);
+    setImageLoading(!!newFoto);
+    setCacheBuster(Date.now());
   }, [profile.photoURL]);
 
   useEffect(() => {
-    setImgError(false);
-  }, [foto]);
+    if (!imageLoading) return;
+
+    const timer = setTimeout(() => {
+      setImageLoading(false);
+      setImgError(true);
+    }, 8000);
+
+    return () => clearTimeout(timer);
+  }, [imageLoading]);
 
   async function handleGantiFotoLangsung(
     e: React.ChangeEvent<HTMLInputElement>,
@@ -57,11 +65,11 @@ export default function ProfileCard({ profile, onRefresh }: Props) {
       }
 
       setFoto(photoURL);
+      setImgError(false);
+      setImageLoading(true);
       setCacheBuster(Date.now());
 
-      setTimeout(async () => {
-        await onRefresh();
-      }, 1500);
+      onRefresh();
 
       toast.success("Foto profil berhasil diperbarui", { id: toastId });
     } catch {
@@ -107,33 +115,32 @@ export default function ProfileCard({ profile, onRefresh }: Props) {
           <div className="w-20 h-20 rounded-2xl bg-blue-600 border-[3px] border-white flex items-center justify-center text-white overflow-hidden shadow-sm relative">
             {foto && !imgError ? (
               <>
+                {imageLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                    <Loader2 className="animate-spin" size={18} />
+                  </div>
+                )}
+
                 <Image
                   src={`${foto}?t=${cacheBuster}`}
                   alt="Foto profil"
                   width={80}
                   height={80}
                   unoptimized
+                  onLoad={() => setImageLoading(false)}
                   onError={() => {
+                    setImageLoading(false);
                     setImgError(true);
-                    setFoto("");
                   }}
                   className={`w-full h-full object-cover ${
-                    loadingFoto ? "opacity-40 blur-sm" : ""
-                  }`}
+                    imageLoading ? "opacity-0" : "opacity-100"
+                  } transition-opacity`}
                 />
-
-                {loadingFoto && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                    <Loader2 className="animate-spin text-white" size={20} />
-                  </div>
-                )}
               </>
-            ) : profile.name ? (
+            ) : (
               <div className="w-full h-full flex items-center justify-center bg-blue-600 text-white text-xl font-semibold">
                 {profile.name.charAt(0).toUpperCase()}
               </div>
-            ) : (
-              <User size={24} />
             )}
           </div>
 
